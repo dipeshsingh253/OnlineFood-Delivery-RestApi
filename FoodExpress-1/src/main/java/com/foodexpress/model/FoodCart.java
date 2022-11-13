@@ -24,16 +24,16 @@ import lombok.NoArgsConstructor;
 public class FoodCart {
 
 	@Id
-//	@GeneratedValue(strategy = GenerationType.AUTO)
+	@GeneratedValue(strategy = GenerationType.AUTO)
 	private Integer cartId;
 	
 	
-	@JsonIgnore
-	@OneToOne(cascade = { CascadeType.ALL })
-	private Customer customer;
+//	@JsonIgnore
+//	@OneToOne(cascade = { CascadeType.ALL })
+//	private Customer customer;
 	
 	
-	@OneToMany(cascade = {CascadeType.ALL})
+	@OneToMany
 	private List<Item> itemList = new ArrayList<>();
 
 }

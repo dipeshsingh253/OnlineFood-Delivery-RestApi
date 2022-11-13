@@ -27,28 +27,30 @@ public class CustomerController {
 
 	@PostMapping("/customers")
 	public ResponseEntity<Customer> add(@RequestBody Customer customer) throws CustomerException {
-		Customer save = customerService.adddCustomer(customer);
+		Customer save = customerService.addCustomer(customer);
 		return new ResponseEntity<Customer>(save, HttpStatus.ACCEPTED);
 	}
 
 	@GetMapping("/customers")
-	public ResponseEntity<List<Customer>> getAll() throws CustomerException {
+	public ResponseEntity<List<Customer>> getAll(@RequestParam String key)
+			throws CustomerException, javax.security.auth.login.LoginException {
 
-		List<Customer> customers = customerService.viewAllCustomers();
+		List<Customer> customers = customerService.viewAllCustomers(key);
 
 		return new ResponseEntity<List<Customer>>(customers, HttpStatus.OK);
 	}
 
 	@PutMapping("/update")
-	public ResponseEntity<Customer> updateCustomer(@RequestBody Customer customer)
-			throws CustomerException, LoginException {
-		Customer returnCustomer = customerService.updateCustomer(customer);
+	public ResponseEntity<Customer> updateCustomer(@RequestParam String key, @RequestBody Customer customer)
+			throws CustomerException, LoginException, javax.security.auth.login.LoginException {
+		Customer returnCustomer = customerService.updateCustomer(key, customer);
 		return new ResponseEntity<Customer>(returnCustomer, HttpStatus.OK);
 	}
 
 	@DeleteMapping("/updates")
-	public ResponseEntity<Customer> delete(@RequestParam String email) throws CustomerException {
-		Customer deleted = customerService.removeCustomer(email);
+	public ResponseEntity<Customer> delete(@RequestParam String key, @RequestParam String email)
+			throws CustomerException, javax.security.auth.login.LoginException {
+		Customer deleted = customerService.removeCustomer(key, email);
 		return new ResponseEntity<Customer>(deleted, HttpStatus.OK);
 
 	}

@@ -28,19 +28,18 @@ public class Item {
 	
 	
 	@Id
-//	@GeneratedValue(strategy = GenerationType.AUTO)
+	@GeneratedValue(strategy = GenerationType.AUTO)
 	private Integer itemId;
 	private String itemName;
 	
 //	
-	@OneToOne(cascade = CascadeType.ALL)
+	@OneToOne
 	private Category category;
 	private Integer quantity;
 	private double cost;
 //	
 //	@ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE},fetch = FetchType.EAGER ,mappedBy = "restaurants")
 	
-
 	@ManyToMany
 	private List<Restaurant> restaurants=new ArrayList<>();
 	

@@ -25,6 +25,7 @@ public class CurrentUserSession {
 	
 	
 	private String key;
+	private String role;
 	
 	private LocalDateTime localDateTime;
 

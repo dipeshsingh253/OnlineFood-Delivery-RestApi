@@ -7,10 +7,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.foodexpress.model.Bill;
+import com.foodexpress.model.CurrentUserSession;
 import com.foodexpress.model.OrderDetails;
 import com.foodexpress.repo.BillRepo;
 import com.foodexpress.repo.OrderDetailsRepo;
 import com.foodexpress.exception.*;
+
+import com.foodexpress.repo.*;
 
 @Service
 public class BillServiceImpl implements BillService {
@@ -20,10 +23,21 @@ public class BillServiceImpl implements BillService {
 
 	@Autowired
 	private OrderDetailsRepo orderDetailsRepo;
+	
+	
+	@Autowired 
+	private CurrentUserSessionRepo sessionRepo;
 
 	@Override
-	public Bill addBill(Bill bill) throws BillException {
+	public Bill addBill(String key,Bill bill) throws BillException, LoginException {
+		
+		CurrentUserSession user = sessionRepo.findByKey(key);
 
+		if (user == null) {
+			throw new LoginException("Login Required");
+		}
+		
+		
 		Optional<Bill> optional = billRepo.findById(bill.getBillId());
 
 		if (optional.isPresent()) {
@@ -34,7 +48,7 @@ public class BillServiceImpl implements BillService {
 	}
 
 	@Override
-	public List<Bill> viewAllBills() throws BillException {
+	public List<Bill> viewAllBills(String key) throws BillException {
 
 		List<Bill> bills = billRepo.findAll();
 
@@ -46,8 +60,14 @@ public class BillServiceImpl implements BillService {
 	}
 
 	@Override
-	public Bill updateBill(Bill bill) throws BillException, OrderDetailsException, LoginException {
+	public Bill updateBill(String key,Bill bill) throws BillException, OrderDetailsException, LoginException {
+		
+		CurrentUserSession user = sessionRepo.findByKey(key);
 
+		if (user == null) {
+			throw new LoginException("Login Required");
+		}
+		
 		Optional<Bill> optionalBill = billRepo.findById(bill.getBillId());
 
 		if (optionalBill.isEmpty()) {
@@ -65,8 +85,15 @@ public class BillServiceImpl implements BillService {
 	}
 
 	@Override
-	public Bill removeBill(Integer billId) throws BillException, LoginException {
+	public Bill removeBill(String key,Integer billId) throws BillException, LoginException {
+		
+		CurrentUserSession user = sessionRepo.findByKey(key);
 
+		if (user == null) {
+			throw new LoginException("Login Required");
+		}
+
+		
 		Optional<Bill> optionalBill = billRepo.findById(billId);
 
 		if (optionalBill.isEmpty()) {
@@ -81,14 +108,19 @@ public class BillServiceImpl implements BillService {
 	}
 
 	@Override
-	public Bill viewBill(Integer billId) throws BillException, LoginException {
+	public Bill viewBill(String key,Integer billId) throws BillException, LoginException {
+		
+		CurrentUserSession user = sessionRepo.findByKey(key);
+
+		if (user == null) {
+			throw new LoginException("Login Required");
+		}
 		
 		Optional<Bill> optionalBill = billRepo.findById(billId);
 
 		if (optionalBill.isEmpty()) {
 			throw new BillException("Bill does not exist");
 		}
-		
 		
 		return optionalBill.get();
 	}

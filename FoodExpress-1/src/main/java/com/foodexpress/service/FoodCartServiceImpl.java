@@ -4,16 +4,19 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import javax.security.auth.login.LoginException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.foodexpress.exception.FoodCartException;
 import com.foodexpress.exception.ItemException;
+import com.foodexpress.model.CurrentUserSession;
 import com.foodexpress.model.FoodCart;
 import com.foodexpress.model.Item;
 import com.foodexpress.repo.FoodCartRepo;
 import com.foodexpress.repo.ItemRepo;
-
+import com.foodexpress.repo.*;
 @Service
 public class FoodCartServiceImpl implements FoodCartService {
 
@@ -22,22 +25,33 @@ public class FoodCartServiceImpl implements FoodCartService {
 
 	@Autowired
 	private ItemRepo itemRepo;
+	
+	
+	@Autowired 
+	private CurrentUserSessionRepo sessionRepo;
+
+//	@Override
+//	public FoodCart addFoodCart(FoodCart foodCart) throws FoodCartException {
+//
+//		Optional<FoodCart> optional = foodCartRepo.findById(foodCart.getCartId());
+//
+//		if (optional.isPresent()) {
+//			throw new FoodCartException("Cart alredy exists");
+//		}
+//
+//		return foodCartRepo.save(foodCart);
+//	}
 
 	@Override
-	public FoodCart addFoodCart(FoodCart foodCart) throws FoodCartException {
+	public List<FoodCart> viewAllFoodCarts(String key) throws FoodCartException, LoginException {
+		
+		CurrentUserSession user = sessionRepo.findByKey(key);
 
-		Optional<FoodCart> optional = foodCartRepo.findById(foodCart.getCartId());
-
-		if (optional.isPresent()) {
-			throw new FoodCartException("Cart alredy exists");
+		if (user == null) {
+			throw new LoginException("Login Required");
 		}
-
-		return foodCartRepo.save(foodCart);
-	}
-
-	@Override
-	public List<FoodCart> viewAllFoodCarts() throws FoodCartException {
-
+		
+		
 		List<FoodCart> foodCarts = foodCartRepo.findAll();
 
 		if (foodCarts.size() == 0) {
@@ -48,10 +62,69 @@ public class FoodCartServiceImpl implements FoodCartService {
 	}
 
 	@Override
-	public FoodCart increaseQuantity(FoodCart cart, Item item, Integer quantity)
-			throws FoodCartException, ItemException {
+	public FoodCart increaseQuantity(String key, Integer itemId, Integer quantity)
+			throws FoodCartException, ItemException, LoginException {
+		
+		
+		CurrentUserSession user = sessionRepo.findByKey(key);
 
-		Optional<FoodCart> optionalCart = foodCartRepo.findById(cart.getCartId());
+		if (user == null) {
+			throw new LoginException("Login Required");
+		}
+
+		
+		Optional<FoodCart> optionalCart = foodCartRepo.findById(0);
+
+		if (optionalCart.isEmpty()) {
+			throw new FoodCartException("No carts Available");
+		}
+
+		FoodCart existedCart = optionalCart.get();
+
+		if (existedCart.getItemList().size() == 0) {
+			throw new FoodCartException("No items available in cart...Cart is empty");
+		}
+
+		boolean found = false;
+
+		List<Item> items = existedCart.getItemList();
+		
+		Item updetedItem = new Item();
+		updetedItem.setItemId(itemId);
+		
+		
+		for (int i = 0; i < items.size(); i++) {
+
+			Item itm = items.get(i);
+
+			if (itm.getItemId() == itemId) {
+				found = true;
+
+				itm.setQuantity(Math.abs(itm.getQuantity() - quantity));
+
+				updetedItem = itemRepo.save(updetedItem);
+
+			}
+		}
+
+		if (!found) {
+			throw new ItemException("Item not found for given id ");
+		}
+
+		return foodCartRepo.save(existedCart);
+	}
+
+	@Override
+	public FoodCart reduceQuantity( String key,Integer itemId, Integer quantity) throws FoodCartException, ItemException, LoginException {
+		
+		CurrentUserSession user = sessionRepo.findByKey(key);
+
+		if (user == null) {
+			throw new LoginException("Login Required");
+		}
+		
+
+		Optional<FoodCart> optionalCart = foodCartRepo.findById(0);
 
 		if (optionalCart.isEmpty()) {
 			throw new FoodCartException("No carts Available");
@@ -71,7 +144,7 @@ public class FoodCartServiceImpl implements FoodCartService {
 
 			Item itm = items.get(i);
 
-			if (itm.getItemId() == item.getItemId()) {
+			if (itm.getItemId() == itemId) {
 				found = true;
 
 				itm.setQuantity(Math.abs(itm.getQuantity() - quantity));
@@ -89,49 +162,16 @@ public class FoodCartServiceImpl implements FoodCartService {
 	}
 
 	@Override
-	public FoodCart reduceQuantity(FoodCart cart, Item item, Integer quantity) throws FoodCartException, ItemException {
+	public FoodCart removeItem(String key,Integer itemId) throws FoodCartException, ItemException, LoginException {
+		
+		CurrentUserSession user = sessionRepo.findByKey(key);
 
-		Optional<FoodCart> optionalCart = foodCartRepo.findById(cart.getCartId());
-
-		if (optionalCart.isEmpty()) {
-			throw new FoodCartException("No carts Available");
+		if (user == null) {
+			throw new LoginException("Login Required");
 		}
-
-		FoodCart existedCart = optionalCart.get();
-
-		if (existedCart.getItemList().size() == 0) {
-			throw new FoodCartException("No items available in cart...Cart is empty");
-		}
-
-		boolean found = false;
-
-		List<Item> items = existedCart.getItemList();
-
-		for (int i = 0; i < items.size(); i++) {
-
-			Item itm = items.get(i);
-
-			if (itm.getItemId() == item.getItemId()) {
-				found = true;
-
-				itm.setQuantity(Math.abs(itm.getQuantity() - quantity));
-
-//				itemRepo.save(item);
-
-			}
-		}
-
-		if (!found) {
-			throw new ItemException("Item not found for given id ");
-		}
-
-		return foodCartRepo.save(existedCart);
-	}
-
-	@Override
-	public FoodCart removeItem(FoodCart cart, Item item) throws FoodCartException, ItemException {
-
-		Optional<FoodCart> optionalCart = foodCartRepo.findById(cart.getCartId());
+		
+		
+		Optional<FoodCart> optionalCart = foodCartRepo.findById(0);
 
 		if (optionalCart.isEmpty()) {
 			throw new FoodCartException("No carts Available");
@@ -152,7 +192,7 @@ public class FoodCartServiceImpl implements FoodCartService {
 
 			Item itm = items.get(i);
 
-			if (itm.getItemId() == item.getItemId()) {
+			if (itm.getItemId() == itemId) {
 				found = true;
 
 				items.remove(i);
@@ -164,12 +204,21 @@ public class FoodCartServiceImpl implements FoodCartService {
 		if (!found) {
 			throw new ItemException("Item not found for given id ");
 		}
+		
 		return foodCartRepo.save(existedCart);
 	}
 
 	@Override
-	public FoodCart clearCart(FoodCart cart) throws FoodCartException {
-		Optional<FoodCart> optionalCart = foodCartRepo.findById(cart.getCartId());
+	public FoodCart clearCart(String key) throws FoodCartException, LoginException {
+		
+		CurrentUserSession user = sessionRepo.findByKey(key);
+
+		if (user == null) {
+			throw new LoginException("Login Required");
+		}
+		
+		
+		Optional<FoodCart> optionalCart = foodCartRepo.findById(1);
 
 		if (optionalCart.isEmpty()) {
 			throw new FoodCartException("No carts Available");
@@ -190,9 +239,13 @@ public class FoodCartServiceImpl implements FoodCartService {
 	}
 
 	@Override
-	public FoodCart addItemToCart(Integer id, Item item) throws FoodCartException, ItemException {
+	public FoodCart addItemToCart(String key, Integer id, String itemName) throws FoodCartException, ItemException, LoginException {
 		
-		
+		CurrentUserSession user = sessionRepo.findByKey(key);
+
+		if (user == null) {
+			throw new LoginException("Login Required");
+		}
 		
 		Optional<FoodCart> optionalCart = foodCartRepo.findById(id);
 
@@ -202,13 +255,18 @@ public class FoodCartServiceImpl implements FoodCartService {
 		
 		FoodCart existedCart = optionalCart.get();
 			
-		Item existedItem = itemRepo.findByItemName(item.getItemName());
+		Item existedItem = itemRepo.findByItemName(itemName);
 		
 		if(existedItem == null) {
 			throw new ItemException("Item does not exist");
 		}
 		
-		existedCart.getItemList().add(item);
+		Item newItem = new Item();
+		newItem.setItemName(itemName);
+		
+		Item saveItem = itemRepo.save(newItem);
+		
+		existedCart.getItemList().add(saveItem);
 		
 		
 		return foodCartRepo.save(existedCart);

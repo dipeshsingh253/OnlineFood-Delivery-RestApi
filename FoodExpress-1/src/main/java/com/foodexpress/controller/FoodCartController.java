@@ -2,6 +2,8 @@ package com.foodexpress.controller;
 
 import java.util.List;
 
+import javax.security.auth.login.LoginException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,61 +29,59 @@ public class FoodCartController {
 	@Autowired
 	private FoodCartService fService;
 
-	@PostMapping("/cart")
-	public ResponseEntity<FoodCart> add(@RequestBody FoodCart foodCart) throws FoodCartException {
-		FoodCart save = fService.addFoodCart(foodCart);
-
-		return new ResponseEntity<FoodCart>(save, HttpStatus.ACCEPTED);
-	}
+//	@PostMapping("/cart")
+//	public ResponseEntity<FoodCart> add(@RequestBody FoodCart foodCart) throws FoodCartException {
+//		FoodCart save = fService.addFoodCart(foodCart);
+//
+//		return new ResponseEntity<FoodCart>(save, HttpStatus.ACCEPTED);
+//	}
 
 	@GetMapping("/cart")
-	public ResponseEntity<List<FoodCart>> getAll() throws FoodCartException {
-		List<FoodCart> carts = fService.viewAllFoodCarts();
+	public ResponseEntity<List<FoodCart>> getAll(@RequestParam String key) throws FoodCartException, LoginException {
+		List<FoodCart> carts = fService.viewAllFoodCarts(key);
 
 		return new ResponseEntity<List<FoodCart>>(carts, HttpStatus.OK);
 	}
 
 	@PutMapping("/cart/increase")
-	public ResponseEntity<FoodCart> increaseQuantity(@RequestBody FoodCart foodCart, @RequestBody Item item,
-			@RequestParam Integer quantity) throws FoodCartException, ItemException {
+	public ResponseEntity<FoodCart> increaseQuantity(@RequestParam String key,@RequestParam Integer itemid, @RequestParam Integer quantity)
+			throws FoodCartException, ItemException, LoginException {
 
-		FoodCart ansCart = fService.increaseQuantity(foodCart, item, quantity);
+		FoodCart ansCart = fService.increaseQuantity(key,itemid, quantity);
 
 		return new ResponseEntity<FoodCart>(ansCart, HttpStatus.ACCEPTED);
 	}
 
 	@PutMapping("/cart/reduce")
-	public ResponseEntity<FoodCart> reduceQuantity(@RequestBody FoodCart foodCart, @RequestBody Item item,
-			@RequestParam Integer quantity) throws FoodCartException, ItemException {
+	public ResponseEntity<FoodCart> reduceQuantity(@RequestParam String key,@RequestParam Integer itemid, @RequestParam Integer quantity) throws FoodCartException, ItemException, LoginException {
 
-		FoodCart ansCart = fService.reduceQuantity(foodCart, item, quantity);
+		FoodCart ansCart = fService.reduceQuantity(key, itemid, quantity);
 
 		return new ResponseEntity<FoodCart>(ansCart, HttpStatus.ACCEPTED);
 	}
 
 	@DeleteMapping("/delete")
-	public ResponseEntity<FoodCart> deleteIteme(@RequestBody FoodCart foodCart, @RequestBody Item item)
-			throws FoodCartException, ItemException {
-		FoodCart ansCart = fService.removeItem(foodCart, item);
+	public ResponseEntity<FoodCart> deleteIteme(@RequestParam String key,@RequestParam Integer itemId)
+			throws FoodCartException, ItemException, LoginException {
+		FoodCart ansCart = fService.removeItem(key,itemId);
 
 		return new ResponseEntity<FoodCart>(ansCart, HttpStatus.OK);
 
 	}
 
 	@PutMapping("/cart/clear")
-	public ResponseEntity<FoodCart> clearCart(@RequestBody FoodCart foodCart) throws FoodCartException {
-		FoodCart ansCart = fService.clearCart(foodCart);
+	public ResponseEntity<FoodCart> clearCart(@RequestParam String key) throws FoodCartException, LoginException {
+		FoodCart ansCart = fService.clearCart(key);
 
 		return new ResponseEntity<FoodCart>(ansCart, HttpStatus.ACCEPTED);
 	}
-	
-	
-	@PutMapping("/cart/items/{id}")
-	public ResponseEntity<FoodCart> addItemtoCart(@PathVariable("id") Integer id, @RequestBody Item item) throws FoodCartException, ItemException{
 
-		
-		FoodCart added = fService.addItemToCart(id, item);
-		
+	@PutMapping("/cart/items/")
+	public ResponseEntity<FoodCart> addItemtoCart(@RequestParam String key,@RequestParam Integer id, @RequestParam String itemName)
+			throws FoodCartException, ItemException, LoginException {
+
+		FoodCart added = fService.addItemToCart(key, id, itemName);
+
 		return new ResponseEntity<FoodCart>(added, HttpStatus.ACCEPTED);
 	}
 }

@@ -3,12 +3,16 @@ package com.foodexpress.service;
 import java.util.List;
 import java.util.Optional;
 
+import javax.security.auth.login.LoginException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.foodexpress.exception.CategoryException;
 import com.foodexpress.model.Category;
+import com.foodexpress.model.CurrentUserSession;
 import com.foodexpress.repo.CategoryRepo;
+import com.foodexpress.repo.*;
 
 @Service
 public class CategoryServiceImpl implements CategoryService {
@@ -16,8 +20,20 @@ public class CategoryServiceImpl implements CategoryService {
 	@Autowired
 	private CategoryRepo categoryRepo;
 
+	@Autowired
+	private CurrentUserSessionRepo sessionRepo;
+
 	@Override
-	public Category addCategory(String category) throws CategoryException {
+	public Category addCategory(String key, String category) throws CategoryException, LoginException {
+		CurrentUserSession user = sessionRepo.findByKey(key);
+
+		if (user == null) {
+			throw new LoginException("Login Required");
+		}
+
+		if (user.getRole().equalsIgnoreCase("customer")) {
+			throw new LoginException("You are logged in as customer, You can not perfom this action");
+		}
 
 		Category save = categoryRepo.findByCategoryName(category);
 
@@ -32,8 +48,19 @@ public class CategoryServiceImpl implements CategoryService {
 	}
 
 	@Override
-	public List<Category> viewAllCategories() throws CategoryException {
+	public List<Category> viewAllCategories(String key) throws CategoryException, LoginException {
+		
+		
+		CurrentUserSession user = sessionRepo.findByKey(key);
 
+		if (user == null) {
+			throw new LoginException("Login Required");
+		}
+		
+		if(user.getRole().equalsIgnoreCase("customer")) {
+			throw new LoginException("You are logged in as customer, You can not perfom this action");
+		}
+		
 		List<Category> categories = categoryRepo.findAll();
 
 		if (categories.size() == 0) {
@@ -44,20 +71,40 @@ public class CategoryServiceImpl implements CategoryService {
 	}
 
 	@Override
-	public Category updateCategory(Category category) throws CategoryException {
+	public Category updateCategory(String key, Category category) throws CategoryException, LoginException {
+		
+		CurrentUserSession user = sessionRepo.findByKey(key);
 
+		if (user == null) {
+			throw new LoginException("Login Required");
+		}
+		
+		if(user.getRole().equalsIgnoreCase("customer")) {
+			throw new LoginException("You are logged in as customer, You can not perfom this action");
+		}
+		
 		Optional<Category> optional = categoryRepo.findById(category.getCategoryId());
 
 		if (optional.isEmpty()) {
 			throw new CategoryException("No categories available  with given id");
 		}
 
-		return categoryRepo.save(optional.get());
+		return categoryRepo.save(category);
 	}
 
 	@Override
-	public Category removeCategoryById(Integer categoryId) throws CategoryException {
+	public Category removeCategoryById(String key, Integer categoryId) throws CategoryException, LoginException {
+		
+		CurrentUserSession user = sessionRepo.findByKey(key);
 
+		if (user == null) {
+			throw new LoginException("Login Required");
+		}
+		
+		if(user.getRole().equalsIgnoreCase("customer")) {
+			throw new LoginException("You are logged in as customer, You can not perfom this action");
+		}
+		
 		Optional<Category> optional = categoryRepo.findById(categoryId);
 
 		if (optional.isEmpty()) {
@@ -71,8 +118,18 @@ public class CategoryServiceImpl implements CategoryService {
 	}
 
 	@Override
-	public Category viewCategoryById(Integer categoryId) throws CategoryException {
+	public Category viewCategoryById(String key, Integer categoryId) throws CategoryException, LoginException {
+		
+		CurrentUserSession user = sessionRepo.findByKey(key);
 
+		if (user == null) {
+			throw new LoginException("Login Required");
+		}
+		
+		if(user.getRole().equalsIgnoreCase("customer")) {
+			throw new LoginException("You are logged in as customer, You can not perfom this action");
+		}
+		
 		Optional<Category> optional = categoryRepo.findById(categoryId);
 
 		if (optional.isEmpty()) {

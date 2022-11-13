@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.foodexpress.exception.BillException;
@@ -27,40 +28,40 @@ public class BillController {
 	private BillService billService;
 
 	@PostMapping("/bills")
-	public ResponseEntity<Bill> add(@RequestBody Bill bill)
+	public ResponseEntity<Bill> add(@RequestParam String key, @RequestBody Bill bill)
 			throws BillException, CustomerException, OrderDetailsException, LoginException {
-		Bill saveBill = billService.addBill(bill);
+		Bill saveBill = billService.addBill(key,bill);
 
 		return new ResponseEntity<Bill>(saveBill, HttpStatus.ACCEPTED);
 	}
 
 	@GetMapping("/bills")
-	public ResponseEntity<List<Bill>> getAll() throws BillException {
-		List<Bill> bills = billService.viewAllBills();
+	public ResponseEntity<List<Bill>> getAll(@RequestParam String key) throws BillException {
+		List<Bill> bills = billService.viewAllBills(key);
 
 		return new ResponseEntity<List<Bill>>(bills, HttpStatus.OK);
 	}
 
 	@PutMapping("/bills")
-	public ResponseEntity<Bill> update(@RequestBody Bill bill)
+	public ResponseEntity<Bill> update(@RequestParam String key,@RequestBody Bill bill)
 			throws BillException, OrderDetailsException, LoginException {
-		Bill updated = billService.updateBill(bill);
+		Bill updated = billService.updateBill(key, bill);
 
 		return new ResponseEntity<Bill>(updated, HttpStatus.ACCEPTED);
 	}
 
-	@DeleteMapping("/bills/{id}")
-	public ResponseEntity<Bill> delete(@PathVariable("id") Integer id) throws BillException, LoginException {
+	@DeleteMapping("/bills")
+	public ResponseEntity<Bill> delete(@RequestParam String key,@RequestParam Integer id) throws BillException, LoginException {
 
-		Bill deleted = billService.removeBill(id);
+		Bill deleted = billService.removeBill(key,id);
 
 		return new ResponseEntity<Bill>(deleted, HttpStatus.ACCEPTED);
 
 	}
 
 	@GetMapping("/bills/{id}")
-	public ResponseEntity<Bill> add(@PathVariable("id") Integer id) throws BillException, LoginException {
-		Bill saveBill = billService.viewBill(id);
+	public ResponseEntity<Bill> add(@RequestParam String key ,@PathVariable("id") Integer id) throws BillException, LoginException {
+		Bill saveBill = billService.viewBill(key,id);
 
 		return new ResponseEntity<Bill>(saveBill, HttpStatus.ACCEPTED);
 	}
